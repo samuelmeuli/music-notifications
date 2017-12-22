@@ -95,22 +95,27 @@ router.post('/', authMiddleware, async (request, response) => {
 
 
 /**
- * DELETE SUBSCRIPTION
+ * DELETE SUBSCRIPTION(S)
  * DELETE /api/subscriptions
  */
 router.delete('/', authMiddleware, async (request, response) => {
 
 	const userId = response.locals.userId;
-	const artistId = request.body.artistId;
+	const artistIds = request.body.artistIds;
 
 	// check for missing parameters
-	if (!artistId) {
+	if (!artistIds) {
 		return response.status(422).end();
 	}
 
-	// delete subscription
+	// check if artistIds is array
+	if (!(artistIds instanceof Array)) {
+		return response.status(422).end();
+	}
+
+	// delete subscription(s)
 	try {
-		await subscriptionController.deleteSubscription(userId, artistId);
+		await subscriptionController.deleteSubscriptions(userId, artistIds);
 		return response.status(200).end();
 	}
 	catch (err) {
