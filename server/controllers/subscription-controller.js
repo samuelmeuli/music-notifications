@@ -43,21 +43,24 @@ exports.getSubscriptions = async (userId) => {
 
 
 /**
- * ADD SUBSCRIPTION
- * add artistId to user's subscription list
+ * ADD SUBSCRIPTION(S)
+ * add artistIds to user's subscription list
  */
-exports.addSubscription = async (userId, artistId) => {
+exports.addSubscriptions = async (userId, artistIds) => {
 
 	// connect to database
 	const db = await database.connect();
 
-	// add artistId to user's subscriptions
+	// add artistIds to user's subscriptions
 	let user;
 	try {
-		user = await db.User.findByIdAndUpdate(userId, { $addToSet: { subscriptions: artistId }});
+		user = await db.User.findByIdAndUpdate(
+			userId,
+			{ $addToSet: { subscriptions: { $each: artistIds }}}
+		);
 	}
 	catch (err) {
-		logger.error(`Error adding subscription to user ${userId}: `, err);
+		logger.error(`Error adding subscription(s) ${artistIds} to user ${userId}: `, err);
 		db.connection.close();
 		throw err;
 	}
@@ -66,19 +69,19 @@ exports.addSubscription = async (userId, artistId) => {
 
 	if (!user) {
 		// error: user not found
-		logger.error(`Error adding subscription to user: no user found with userId ${userId}`);
+		logger.error(`Error adding subscription(s): no user found with userId ${userId}`);
 		const err = new Error('No user found with this userId');
 		err.name = 'userNotFound';
 		throw err;
 	}
 	else {
-		logger.info(`Added subscription ${artistId} to user ${userId}`);
+		logger.info(`Added subscription(s) ${artistIds} to user ${userId}`);
 	}
 };
 
 
 /**
- * REMOVE SUBSCRIPTION
+ * DELETE SUBSCRIPTION(S)
  * remove artistIds from user's subscription list
  */
 exports.deleteSubscriptions = async (userId, artistIds) => {

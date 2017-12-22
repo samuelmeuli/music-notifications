@@ -34,38 +34,46 @@ router.get('/', authMiddleware, async (request, response) => {
 
 
 /**
- * ADD SUBSCRIPTION
+ * ADD SUBSCRIPTION(S)
  * POST /api/subscriptions
  */
 router.post('/', authMiddleware, async (request, response) => {
 
 	const userId = response.locals.userId;
-	const artistSearchKey = request.body.artist;
+	const searchKeys = request.body.artists;
 
-	// check for missing parameters
-	if (!artistSearchKey) {
+	// check whether searchKeys exists and if it is an array
+	if (!searchKeys || !(searchKeys instanceof Array)) {
 		return response.status(422).end();
 	}
 
-	// look up artist information (artistId, artistName, artistUrl)
-	let iTunesArtist;
-	try {
-		iTunesArtist = await iTunesController.searchArtist(artistSearchKey);
-	}
-	catch (err) {
-		// error: email address already used for another account
-		if (err.name === 'artistNotFound') {
-			return response.status(404).end();
-		}
-		// other error
-		else {
-			return response.status(500).end();
-		}
-	}
+	// look up artist(s) on iTunes (fetch artistId, artistName, artistUrl)
+	const artistsFound = [];
+	const artistsFoundIds = [];
+	const artistsNotFound = [];
+	await Promise.all(
+		searchKeys.map(async (searchKey) => {
+			try {
+				const iTunesArtist = await iTunesController.searchArtist(searchKey);
+				artistsFound.push(iTunesArtist);
+				artistsFoundIds.push(iTunesArtist.artistId)
+			}
+			catch (err) {
+				// error: artist not found on iTunes
+				if (err.name === 'artistNotFound') {
+					artistsNotFound.push(searchKey);
+				}
+				// other error
+				else {
+					return response.status(500).end();
+				}
+			}
+		})
+	);
 
-	// add artistId to user's subscription list
+	// add artistIds to user's subscription list
 	try {
-		await subscriptionController.addSubscription(userId, iTunesArtist.artistId);
+		await subscriptionController.addSubscriptions(userId, artistsFoundIds);
 	}
 	catch (err) {
 		// error: user not found
@@ -78,15 +86,24 @@ router.post('/', authMiddleware, async (request, response) => {
 		}
 	}
 
-	// get artist information from database or create artist document
-	let artist;
+	// get artist information from database or create artist document(s)
 	try {
-		artist = await artistController.getOrCreateArtist(
-			iTunesArtist.artistId,
-			iTunesArtist.artistName,
-			iTunesArtist.artistUrl
+		const artists = await Promise.all(
+			artistsFound.map(artist =>
+				artistController.getOrCreateArtist(
+					artist.artistId,
+					artist.artistName,
+					artist.artistUrl
+				)
+			)
 		);
-		return response.status(200).send(artist);
+		// send database entries of artists that were found and search keys of artists that were not
+		// found to client
+		const resObj = {
+			artistsFound: artists,
+			artistsNotFound
+		};
+		return response.status(200).send(resObj);
 	}
 	catch (err) {
 		return response.status(500).end();
