@@ -4,7 +4,7 @@ const logger = require('winston');
 
 const database = require('../database');
 const mailController = require('./mail-controller');
-const serverConfig = require('../../config/server-config.json');
+const jwtConfig = require('../../config.json').jwt;
 
 
 /**
@@ -54,7 +54,7 @@ exports.createUser = async (email, password) => {
 		// generate activation JWT
 		const activationToken = jwt.sign(
 			{	userId: newUser._id, type: 'activation' }, // token claims
-			serverConfig.jwtSecret, // secret
+			jwtConfig.secret, // secret
 			{ expiresIn: '1h' } // expiration time
 		);
 		// send URL with token via email

@@ -1,7 +1,7 @@
 const logger = require('winston');
 const mongoose = require('mongoose');
 
-const dbConfig = require('../config/db-config');
+const dbConfig = require('../config.json').database;
 
 // database schemas
 const artistSchema = require('./models/artist-schema');

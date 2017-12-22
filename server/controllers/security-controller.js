@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const logger = require('winston');
 
 const database = require('../database');
-const serverConfig = require('../../config/server-config.json');
+const jwtConfig = require('../../config.json').jwt;
 
 
 /**
@@ -49,7 +49,7 @@ exports.signIn = async (email, password) => {
 		// construct JWT
 		return jwt.sign(
 			{ userId: user._id, type: 'auth' }, // token claims
-			serverConfig.jwtSecret, // secret
+			jwtConfig.secret, // secret
 			{ expiresIn: '1h' } // expiration time
 		);
 	}

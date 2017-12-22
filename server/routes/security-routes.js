@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const authMiddleware = require('./auth-middleware');
 const securityController = require('../controllers/security-controller');
-const serverConfig = require('../../config/server-config.json');
+const jwtConfig = require('../../config.json').jwt;
 const userController = require('../controllers/user-controller');
 
 const router = express.Router();
@@ -79,7 +79,7 @@ router.get('/activation/:token', async (request, response) => {
 
 	// decode JWT
 	const token = request.params.token;
-	const jwtDecoded = jwt.verify(token, serverConfig.jwtSecret);
+	const jwtDecoded = jwt.verify(token, jwtConfig.secret);
 
 	// verify that JWT is of activation type
 	if (jwtDecoded.type !== 'activation') {

@@ -1,12 +1,12 @@
 const nodemailer = require('nodemailer');
 
-const mailConfig = require('../../config/mail-config.json');
+const mailConfig = require('../../config.json').email;
 
 
 // mail configuration
 const transporter = nodemailer.createTransport({
 	auth: {
-		user: mailConfig.email,
+		user: mailConfig.address,
 		pass: mailConfig.password
 	},
 	host: mailConfig.host,
@@ -39,7 +39,7 @@ exports.sendActivationLink = (email, activationToken) => {
 
 	// mail settings
 	const mailOptions = {
-		from: `MusicNotifications <${mailConfig.email}>`,
+		from: `MusicNotifications <${mailConfig.address}>`,
 		to: email,
 		subject,
 		html: mailBody
@@ -88,7 +88,7 @@ exports.sendNotification = (email, artists) => {
 
 	// mail settings
 	const mailOptions = {
-		from: `MusicNotifications <${mailConfig.email}>`,
+		from: `MusicNotifications <${mailConfig.address}>`,
 		to: email,
 		subject,
 		html: mailBody

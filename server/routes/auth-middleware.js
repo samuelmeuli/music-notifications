@@ -2,7 +2,7 @@ const logger = require('winston');
 const jwt = require('jsonwebtoken');
 
 const securityController = require('../controllers/security-controller');
-const serverConfig = require('../../config/server-config.json');
+const jwtConfig = require('../../config.json').jwt;
 
 
 /**
@@ -32,7 +32,7 @@ module.exports = async (request, response, next) => {
 	token = token.slice(7); // remove 'Bearer ' from authorization header
 	let jwtDecoded;
 	try {
-		jwtDecoded = jwt.verify(token, serverConfig.jwtSecret);
+		jwtDecoded = jwt.verify(token, jwtConfig.secret);
 	}
 	catch (err) {
 		// JWT has expired

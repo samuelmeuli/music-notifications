@@ -6,7 +6,7 @@ Thumbs.db
 .idea/
 
 # configuration
-config/
+config.json
 
 # logs
 *.log

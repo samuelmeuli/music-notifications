@@ -1,6 +1,8 @@
 const axios = require('axios');
 const logger = require('winston');
 
+const iTunesConfig = require('../../config').iTunes;
+
 // iTunes Search API
 // https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/
 const iTunesApi = axios.create({ baseURL: 'https://itunes.apple.com' });
@@ -12,8 +14,14 @@ const iTunesApi = axios.create({ baseURL: 'https://itunes.apple.com' });
  */
 exports.searchArtist = async (searchKey) => {
 
+	// search store of country with code specified in config file
+	let countryCode = '';
+	if (iTunesConfig.country) {
+		countryCode = `&country=${iTunesConfig.country}`;
+	}
+
 	// encode search string and construct query URL (limit=1 takes best match)
-	const url = `/search?term=${encodeURI(searchKey)}&entity=allArtist&limit=1`;
+	const url = `/search?term=${encodeURI(searchKey)}&entity=allArtist&limit=1${countryCode}`;
 
 	// get artist information from iTunes
 	let response;
@@ -51,8 +59,14 @@ exports.searchArtist = async (searchKey) => {
  */
 exports.getLatestRelease = async (artistId) => {
 
+	// search store of country with code specified in config file
+	let countryCode = '';
+	if (iTunesConfig.country) {
+		countryCode = `&country=${iTunesConfig.country}`;
+	}
+
 	// construct query URL using artistId
-	const url = `/lookup?id=${artistId}&entity=album`;
+	const url = `/lookup?id=${artistId}&entity=album${countryCode}`;
 
 	// fetch artist's releases from iTunes
 	const response = await iTunesApi.get(url);
